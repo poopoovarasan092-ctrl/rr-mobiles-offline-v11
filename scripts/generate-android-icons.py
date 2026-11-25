@@ -11,14 +11,13 @@ RES = ANDROID / "res"
 MANIFEST = ANDROID / "AndroidManifest.xml"
 
 if not SOURCE.exists():
-    raise SystemExit(f"RR Mobiles icon not found: {SOURCE}")
+    raise SystemExit("RR logo icon-512.png is missing")
 
 if not MANIFEST.exists():
-    raise SystemExit(f"AndroidManifest.xml not found: {MANIFEST}")
+    raise SystemExit("AndroidManifest.xml is missing")
 
 icon = Image.open(SOURCE).convert("RGBA")
 
-# Generate launcher icons in Android mipmap folders
 sizes = {
     "mipmap-mdpi": 48,
     "mipmap-hdpi": 72,
@@ -31,91 +30,41 @@ for folder, size in sizes.items():
     target = RES / folder
     target.mkdir(parents=True, exist_ok=True)
 
-    fitted = icon.resize(
+    image = icon.resize(
         (size, size),
         Image.Resampling.LANCZOS
     )
 
-    fitted.save(target / "ic_launcher.png")
-    fitted.save(target / "ic_launcher_round.png")
+    image.save(target / "ic_launcher.png")
+    image.save(target / "ic_launcher_round.png")
 
-# Create adaptive icon foreground
-drawable = RES / "drawable"
-drawable.mkdir(parents=True, exist_ok=True)
-
-foreground = Image.new(
-    "RGBA", (432, 432), (0, 0, 0, 0)
-)
-
-safe_logo = icon.resize(
-    (288, 288),
-    Image.Resampling.LANCZOS
-)
-
-foreground.alpha_composite(safe_logo, (72, 72))
-foreground.save(drawable / "ic_launcher_foreground.png")
-
-# Create adaptive icon XML files
+# Remove adaptive icon definitions so Android uses PNG mipmaps
 adaptive = RES / "mipmap-anydpi-v26"
-adaptive.mkdir(parents=True, exist_ok=True)
 
-adaptive_xml = '''<?xml version="1.0" encoding="utf-8"?>
-<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background android:drawable="@color/ic_launcher_background" />
-    <foreground android:drawable="@drawable/ic_launcher_foreground" />
-</adaptive-icon>
-'''
+for name in ("ic_launcher.xml", "ic_launcher_round.xml"):
+    file = adaptive / name
+    if file.exists():
+        file.unlink()
 
-(adaptive / "ic_launcher.xml").write_text(adaptive_xml)
-(adaptive / "ic_launcher_round.xml").write_text(adaptive_xml)
+# Set Android launcher icon references
+content = MANIFEST.read_text(encoding="utf-8")
 
-# Create adaptive icon background color
-values = RES / "values"
-values.mkdir(parents=True, exist_ok=True)
-
-(values / "ic_launcher_background.xml").write_text(
-    '''<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <color name="ic_launcher_background">#06152F</color>
-</resources>
-'''
-)
-
-# Connect mipmap icons to AndroidManifest.xml
-manifest_text = MANIFEST.read_text(encoding="utf-8")
-
-application_pattern = r'<application\b[^>]*>'
-
-match = re.search(application_pattern, manifest_text)
+match = re.search(r'<application\b[^>]*>', content)
 
 if not match:
-    raise SystemExit("Application tag not found in AndroidManifest.xml")
+    raise SystemExit("Application tag not found")
 
-application_tag = match.group(0)
+tag = match.group(0)
 
-application_tag = re.sub(
-    r'\s+android:icon="[^"]*"',
-    '',
-    application_tag
-)
+tag = re.sub(r'\s+android:icon="[^"]*"', '', tag)
+tag = re.sub(r'\s+android:roundIcon="[^"]*"', '', tag)
 
-application_tag = re.sub(
-    r'\s+android:roundIcon="[^"]*"',
-    '',
-    application_tag
-)
-
-application_tag = application_tag[:-1] + (
+tag = tag[:-1] + (
     '\n        android:icon="@mipmap/ic_launcher"'
     '\n        android:roundIcon="@mipmap/ic_launcher_round">'
 )
 
-manifest_text = (
-    manifest_text[:match.start()]
-    + application_tag
-    + manifest_text[match.end():]
-)
+content = content[:match.start()] + tag + content[match.end():]
+MANIFEST.write_text(content, encoding="utf-8")
 
-MANIFEST.write_text(manifest_text, encoding="utf-8")
-
-print("RR Mobiles mipmap icons generated and connected successfully!")
+print("RR Mobiles PNG mipmap launcher icons installed.")
