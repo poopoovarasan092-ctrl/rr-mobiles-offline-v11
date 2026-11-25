@@ -5,8 +5,7 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "public" / "icon-512.png"
-ANDROID = ROOT / "android" / "app" / "src" / "main"
-RES = ANDROID / "res"
+RES = ROOT / "android" / "app" / "src" / "main" / "res"
 
 if not SOURCE.exists():
     raise SystemExit(f"Missing app icon: {SOURCE}")
@@ -24,15 +23,27 @@ sizes = {
 for folder, size in sizes.items():
     target = RES / folder
     target.mkdir(parents=True, exist_ok=True)
-    fitted = icon.resize((size, size), Image.Resampling.LANCZOS)
+
+    fitted = icon.resize(
+        (size, size),
+        Image.Resampling.LANCZOS
+    )
+
     fitted.save(target / "ic_launcher.png")
     fitted.save(target / "ic_launcher_round.png")
 
 drawable = RES / "drawable"
 drawable.mkdir(parents=True, exist_ok=True)
 
-foreground = Image.new("RGBA", (432, 432), (0, 0, 0, 0))
-safe_logo = icon.resize((288, 288), Image.Resampling.LANCZOS)
+foreground = Image.new(
+    "RGBA", (432, 432), (0, 0, 0, 0)
+)
+
+safe_logo = icon.resize(
+    (288, 288),
+    Image.Resampling.LANCZOS
+)
+
 foreground.alpha_composite(safe_logo, (72, 72))
 foreground.save(drawable / "ic_launcher_foreground.png")
 
@@ -51,19 +62,11 @@ xml = '''<?xml version="1.0" encoding="utf-8"?>
 
 values = RES / "values"
 values.mkdir(parents=True, exist_ok=True)
+
 (values / "ic_launcher_background.xml").write_text(
     '<?xml version="1.0" encoding="utf-8"?>\n'
-    '<resources><color name="ic_launcher_background">#06152F</color></resources>'
+    '<resources><color name="ic_launcher_background">'
+    '#06152F</color></resources>'
 )
 
-manifest = ANDROID / "AndroidManifest.xml"
-if manifest.exists():
-    content = manifest.read_text()
-    content = content.replace(
-        'android:icon="@mipmap/ic_launcher"',
-        'android:icon="@mipmap/ic_launcher" '
-        'android:roundIcon="@mipmap/ic_launcher_round"'
-    )
-    manifest.write_text(content)
-
-print("RR Mobiles launcher icons generated.")
+print("RR Mobiles launcher icons generated successfully.")
