@@ -4,7 +4,7 @@ import{localClient as sb}from'./localdb.js';
 import{jsPDF}from'jspdf';
 import'./style.css';
 if('serviceWorker' in navigator) window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
-const configured=true;
+const APP_CONFIGURED=true;
 const money=n=>'₹'+Number(n||0).toLocaleString('en-IN',{maximumFractionDigits:2});
 const today=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
 const waNumber=value=>{let n=String(value||'').replace(/\D/g,'');if(n.length===10)n='91'+n;return n};
@@ -13,7 +13,7 @@ const billMessage=b=>`Hello ${b.customer_name||'Customer'}, thank you for shoppi
 const creditMessage=b=>`Hello ${b.customer_name||'Customer'}, this is a friendly payment reminder from RR Mobiles.\nBill: ${b.bill_no}\nDate: ${b.bill_date}\nAmount due: ${money(b.total)}\nPlease contact us after payment. Thank you.`;
 
 function App(){
- const[session,setSession]=useState(null),[configured]=useState(configured),[tab,setTab]=useState('Dashboard'),[rows,setRows]=useState({customers:[],products:[],bills:[],repairs:[],purchases:[],expenses:[],credit_payments:[]}),[loading,setLoading]=useState(false),[msg,setMsg]=useState('');
+ const[session,setSession]=useState(null),[configured]=useState(APP_CONFIGURED),[tab,setTab]=useState('Dashboard'),[rows,setRows]=useState({customers:[],products:[],bills:[],repairs:[],purchases:[],expenses:[],credit_payments:[]}),[loading,setLoading]=useState(false),[msg,setMsg]=useState('');
  const[form,setForm]=useState({}); const[login,setLogin]=useState({email:'',password:''}); const[selectedCustomerId,setSelectedCustomerId]=useState(null);
  const[billItems,setBillItems]=useState([]);
  const[itemDraft,setItemDraft]=useState({product_id:'',name:'',qty:'1',price:'',cost:''});
