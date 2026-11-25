@@ -1,0 +1,1 @@
+Vite serves manifest.webmanifest from project root. For production, deploy dist/.

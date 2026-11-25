@@ -1,0 +1,6 @@
+{
+  "appId": "in.rrmobiles.offline",
+  "appName": "RR Mobiles Offline",
+  "webDir": "dist",
+  "server": { "androidScheme": "https" }
+}
