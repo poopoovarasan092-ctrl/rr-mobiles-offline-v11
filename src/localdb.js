@@ -1,9 +1,9 @@
 // RR Mobiles Offline Edition: IndexedDB-backed Supabase-compatible adapter.
 // All records stay on this device. No network requests or cloud sync are performed.
 const DB_NAME='rr-mobiles-offline-v10';
-const TABLES=['customers','products','bills','repairs','purchases','expenses','credit_payments','loyalty_transactions','service_transactions'];
+const TABLES=['customers','products','bills','repairs','purchases','expenses','credit_payments','loyalty_transactions'];
 let dbPromise;
-function db(){if(!dbPromise)dbPromise=new Promise((resolve,reject)=>{const r=indexedDB.open(DB_NAME,2);r.onupgradeneeded=()=>{const d=r.result;for(const t of TABLES)if(!d.objectStoreNames.contains(t))d.createObjectStore(t,{keyPath:'id'});};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});return dbPromise}
+function db(){if(!dbPromise)dbPromise=new Promise((resolve,reject)=>{const r=indexedDB.open(DB_NAME,1);r.onupgradeneeded=()=>{const d=r.result;for(const t of TABLES)if(!d.objectStoreNames.contains(t))d.createObjectStore(t,{keyPath:'id'});};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});return dbPromise}
 const uid=()=>crypto.randomUUID?crypto.randomUUID():`${Date.now()}-${Math.random().toString(16).slice(2)}`;
 async function all(table){const d=await db();return new Promise((res,rej)=>{const r=d.transaction(table).objectStore(table).getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error)})}
 async function put(table,row){const d=await db();return new Promise((res,rej)=>{const r=d.transaction(table,'readwrite').objectStore(table).put({...row,id:row.id||uid(),created_at:row.created_at||new Date().toISOString()});r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
